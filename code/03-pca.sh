@@ -47,3 +47,31 @@ plink --bfile "$pruned1KGplusUKBB" --keep "$keepfile" --make-bed --out "$plinkou
 
 Rscript ~/scripts/run_flashPCA2.R "$plinkout" "$flashpcaout"
 
+
+
+#===================================
+# PCA for GOLD3-4 subset
+#===================================
+# intermediate files:
+keepfile="${pcadir}/ukbb_gold3-4_copd_cases.txt"
+plinkout="${pcadir}/19-ukbb_gold34_set"
+flashpcaout="${pcadir}/20-ukbb_gold34_flashpca2"
+
+sed '1d' "$copddata" |awk -F "," '{if($11==3 || $11==4) print $1"\t"$1}' > "$keepfile"
+plink --bfile "$pruned1KGplusUKBB" --keep "$keepfile" --make-bed --out "$plinkout" --memory 15000 
+
+Rscript ~/scripts/run_flashPCA2.R "$plinkout" "$flashpcaout"
+
+
+#===================================
+# PCA for GOLD2 subset
+#===================================
+# intermediate files:
+keepfile="${pcadir}/ukbb_gold2_cases.txt"
+plinkout="${pcadir}/21-ukbb_gold2_set"
+flashpcaout="${pcadir}/22-ukbb_gold2_flashpca2"
+
+sed '1d' "$copddata" |awk -F "," '{if($11==2) print $1"\t"$1}' > "$keepfile"
+plink --bfile "$pruned1KGplusUKBB" --keep "$keepfile" --make-bed --out "$plinkout" --memory 15000 
+
+Rscript ~/scripts/run_flashPCA2.R "$plinkout" "$flashpcaout"
