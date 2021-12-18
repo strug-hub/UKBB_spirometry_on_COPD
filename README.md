@@ -68,13 +68,17 @@ Colocalization was observed when the genome-wide associated peak was tested:
 
 
 ![](products/locusfocus_results/peak_test_205899-205925kbp_v2/colocalization_plot_SStest_205899-205925.png)
-*[LocusFocus](https://locusfocus.research.sickkids.ca) plot testing colocalization of [MI GWAS](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1008007) with UKBB spirometry measures in all participants and in participants with COPD as per GOLD2-4 definitions. The Simple Sum colocalization region tested (gray area) was selected to match the observed peak at chr1:205,899,000-205,925,000. A total of 87 SNPs in this region were used to test for colocalization using the [Simple Sum method](https://www.biorxiv.org/content/biorxiv/early/2021/08/07/2021.08.06.455333.full.pdf)*
+*[LocusFocus](https://locusfocus.research.sickkids.ca) plot testing colocalization of [MI GWAS](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1008007) (shown as points and corresponding left y-axis) with UKBB spirometry measures in all participants and in participants with COPD as per GOLD2-4 definitions (shown as lines traversing the lowest p-values per window with corresponding right y-axis). The `Lung` line is the GTEx eQTL of _SLC26A9_ in the adult lung. The Simple Sum colocalization region tested (gray area) was selected to match the observed peak at chr1:205,899,000-205,925,000. A total of 87 SNPs in this region were used to test for colocalization using the [Simple Sum method](https://www.biorxiv.org/content/biorxiv/early/2021/08/07/2021.08.06.455333.full.pdf).*
+
+
+![](products/locusfocus_results/peak_test_205899-205925kbp_v2/colocalization_plot_SStest_205899-205925_noPEF.png)
+*Same colocalization plot as above but with PEF association line removed and other association datasets rescaled for better visualization*
 
 
 Colocalization results obtained are summarized in [UKBB_spirometry_SS_pvalues.csv](products/locusfocus_results/peak_test_205899-205925kbp_v2/UKBB_spirometry_SS_pvalues.csv). In short, the MI GWAS colocalizes with FEV<sub>1</sub>/FVC ratio and PEF (peak expiratory flow) association studies from the UKBB, and this colocalization is found to be statistically significant after [multiple testing correction](products/locusfocus_results/peak_test_205899-205925kbp_v2/SSguidanceTable.csv) (-log<sub>10</sub>P > 1.78).
 
 
-| Dataset | -log<sub>10</sub>P Colocalization |
+| Dataset | Simple Sum colocalization -log<sub>10</sub>(P-value) |
 |---|---|
 |FEV<sub>1</sub>/FVC in UKBB (N=264,273)|6.48|
 |PEF in UKBB (N=264,273)|7.89|
