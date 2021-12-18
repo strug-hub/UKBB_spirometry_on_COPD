@@ -1,6 +1,0 @@
-../data/clean/assoc/tsv/ratio.irnt.assoc.tsv	FEV1/FVC in UKBB (N=167,655)	chrom	pos	rsid	P
-../data/clean/assoc/tsv/fev1pp.irnt.assoc.tsv	FEV1pp in UKBB (N=167,655)	chrom	pos	rsid	P
-../data/clean/assoc/tsv/ratio.irnt.assoc_copd_only.tsv	FEV1/FVC in COPD (N=14,196)	chrom	pos	rsid	P
-../data/clean/assoc/tsv/fev1pp.irnt.assoc_copd_only.tsv	FEV1pp in COPD (N=14,196)	chrom	pos	rsid	P
-../data/clean/assoc/tsv/hasCOPD.assoc.tsv	COPD case-control (N=167,655)	chrom	pos	rsid	P
-

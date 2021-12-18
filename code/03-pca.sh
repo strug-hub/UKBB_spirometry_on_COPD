@@ -1,8 +1,8 @@
 #!/bin/bash
 
-pruned1KGplusUKBB="/hpf/largeprojects/struglis/cfcentre/strug/Naim/uk_biobank/Ethnic_PCA/12-unrelated_1KG_plus_UKBiobank_pruned_set"
+pruned1KGplusUKBB="/hpf/largeprojects/struglis/cfcentre/strug/Naim/uk_biobank/Ethnic_PCA/12-unrelated_1KG_plus_UKBiobank_pruned_set_mind0.1"
 pcadir="data/intermediate_files/pca"
-copddata="data/intermediate_files/GOLD2-4_copd_ukbb_spirodata.csv"
+copddata="data/clean/ukbb_spiro_and_geno_qc_v2.csv"
 
 [ ! -d "$pcadir" ] && mkdir "$pcadir"
 
@@ -15,20 +15,23 @@ ln -s "${pruned1KGplusUKBB}.log" "$pcadir"
 # intermediate files:
 keepfile="${pcadir}/ukbb_gold2-4_copd_cases.txt"
 plinkout="${pcadir}/13-ukbb_copd_set"
-kingout="${pcadir}/14-copdset_kinshipmat"
-pcairout="${pcadir}/15-ukbb_copd_pcair"
+#kingout="${pcadir}/14-copdset_kinshipmat"
+flashpcaout="${pcadir}/15-ukbb_copd_flashpca2"
 
-sed '1d' "$copddata" |awk -F "," '{print $1"\t"$1}' > "$keepfile"
+sed '1d' "$copddata" |awk -F "," '{if($10=="TRUE") print $1"\t"$1}' > "$keepfile"
 plink --bfile "$pruned1KGplusUKBB" --keep "$keepfile" --make-bed --out "$plinkout"
-king -b "${plinkout}.bed" --kinship --prefix "$kingout"
+#king -b "${plinkout}.bed" --kinship --prefix "$kingout"
 
 # Run PCA for the set with COPD (i.e. GOLD2-4)
-Rscript ~/scripts/R_scripts/PC-AiR_v1_empty_kinFile2.R "$plinkout" "$kingout" "$pcairout"
+#Rscript ~/scripts/R_scripts/PC-AiR_v1_empty_kinFile2.R "$plinkout" "$kingout" "$pcairout"
+# fails due to very large memory requirement; run flashPCA2 instead
+
+Rscript ~/scripts/run_flashPCA2.R "$plinkout" "$flashpcaout"
 
 
 
 # Next, we want to run PCA for an analysis of all UKBB with good spirometry/genotype data:
-ukbbdataQCd="data/clean/ukbb_spiro_and_geno_qc.csv"
+ukbbdataQCd="data/clean/ukbb_spiro_and_geno_qc_v2.csv"
 keepfile="${pcadir}/ukbb_good_spirometry_and_genoQC_set.txt"
 plinkout="${pcadir}/16-ukbb_spiro_set"
 #kingout="${pcadir}/17-ukbbspiro_kinshipmat"
@@ -43,7 +46,4 @@ plink --bfile "$pruned1KGplusUKBB" --keep "$keepfile" --make-bed --out "$plinkou
 # fails due to very large memory requirement; run flashPCA2 instead
 
 Rscript ~/scripts/run_flashPCA2.R "$plinkout" "$flashpcaout"
-
-
-# qsub code/03-pca.sh -l walltime=23:59:00 -l nodes=1:ppn=1 -l mem=110g -l vmem=110g -o ./pcajobout -e ./pcajobout -d `pwd` -N copd_pca
 

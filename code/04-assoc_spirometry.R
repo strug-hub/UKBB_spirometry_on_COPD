@@ -87,17 +87,17 @@ get_dosagemat <- function(bgen_filename, ranges, samples, chunksize, fileout) {
   }
   return(dat)
 }
-fileout <- "data/intermediate_files/ukbb_imputation_slc26a9/ukbb_spiroqc"
+fileout <- "data/intermediate_files/ukbb_imputation_slc26a9/ukbb_spiroqc_v3"
 outdir <- "data/clean/assoc/"
 
 print("Loading spirometry phenotypes")
-pheno <- fread("data/clean/ukbb_spiro_and_geno_qc.csv") # 168,104
+pheno <- fread("data/clean/ukbb_spiro_and_geno_qc_v2.csv") # 264,273
 pheno[,ratio := fev1/fvc]
 pheno[,eid := as.character(eid)]
 
 print("Loading PCA")
-pca <- fread("data/intermediate_files/pca/18-ukbb_ukbbspiro_flashpca2_eigenvectors.txt", header=F, stringsAsFactors = F) # 167,655
-pca <- pca[,c("V1","V2","V3","V4"),with=F]  # adjust with 3 PCs
+pca <- fread("data/intermediate_files/pca/18-ukbb_ukbbspiro_flashpca2_eigenvectors.txt", header=F, stringsAsFactors = F) # 264,273
+pca <- pca[,c("V1","V2","V3","V4"),with=F]
 pca[,V1 := gsub("(.*):(.*)","\\2",V1)]
 colnames(pca) <- c("eid","PC1","PC2","PC3")
 
@@ -106,9 +106,10 @@ covar <- cbind(covar, age2=covar$age^2)
 covar[,eid := as.character(eid)]
 
 print("Merging phenotypes and PCA")
-pheno <- merge(pheno,pca,by="eid") # 167,655 - some eid's (449) were missing from genotype arrays
+pheno <- merge(pheno,pca,by="eid") # 264,273
 pheno[,ratio.irnt := get_irnt(ratio)]
 pheno[,fev1pp.irnt := get_irnt(fev1pp)]
+pheno[,pef.irnt := get_irnt(pef)]
 
 
 print(paste0("Loading imputation data for ",nrow(pheno)," samples"))
@@ -120,19 +121,24 @@ ranges = data.frame(
   end = 205940000
 )
 samples <- pheno$samplename
-chunksize <- 15000
-dosage <- get_dosagemat(bgen_filename, ranges, samples, chunksize, fileout)
-write.big.matrix(dosage, paste0(fileout,"_dosage.bigmat"), sep="\t")
+#chunksize <- 70000
+#dosage <- get_dosagemat(bgen_filename, ranges, samples, chunksize, fileout)
+#write.big.matrix(dosage, paste0(fileout,"_dosage.bigmat"), sep="\t")
 
-#dosage <- read.big.matrix(paste0(fileout,"_dosage.bigmat"), sep="\t", type="double")
+dosage <- read.big.matrix(paste0(fileout,"_dosage.bigmat"), sep="\t", type="double")
 map <- fread(paste0(fileout,".map")) # generated above with get_dosagemat function
 sample <- fread(paste0(fileout,".sample")) # generated above with get_dosagemat function
 
 
-# Association with all 167,655 individuals
+# Association with all 264,273 individuals
 print(paste0("Starting association analysis for ",nrow(pheno)," samples and ",nrow(map)," variants"))
-phenocols <- c("ratio.irnt","fev1pp.irnt", "hasCOPD")
+phenocols <- c(#"ratio.irnt"
+               #,"fev1pp.irnt"
+                "hasCOPD"
+               , "pef.irnt")
 results <- NULL
+results <- fread(paste0(outdir,"ratio.irnt",".assoc_v3.csv"))
+results <- rbind(results, fread(paste0(outdir,"fev1pp.irnt",".assoc_v3.csv")))
 for(j in 1:length(phenocols)) {
   phenoj <- pheno[,c("eid", phenocols[j]),with=F]
   phenoname <- phenocols[j]
@@ -186,11 +192,11 @@ for(j in 1:length(phenocols)) {
     phenoj_assoc <- rbind(phenoj_assoc, assoc)
     results <- rbind(results, assoc)
   }
-  outname <- paste0(outdir,phenoname,".assoc.csv")
+  outname <- paste0(outdir,phenoname,".assoc_v3.csv")
   print(paste0("Saving results to: ", outname))
   fwrite(phenoj_assoc, outname, quote=F, row.names=F, col.names=T)
 }
-outname <- paste0(outdir,"spirometry_assoc_ukbb_26a9.csv")
+outname <- paste0(outdir,"spirometry_assoc_ukbb_26a9_v3.csv")
 print(paste0("Saving all spirometry association results to: ", outname))
 fwrite(results, outname, quote=F, row.names=F, col.names=T)
 
@@ -199,12 +205,12 @@ fwrite(results, outname, quote=F, row.names=F, col.names=T)
 # Association with GOLD2-4 COPD individuals
 print("")
 print("Starting association for GOLD2-4 COPD subset")
-pheno <- pheno[,-c("ratio.irnt","fev1pp.irnt","PC1","PC2","PC3"),with=F]
+pheno <- pheno[,-c("ratio.irnt","fev1pp.irnt","pef.irnt","PC1","PC2","PC3"),with=F]
 pheno <- pheno[hasCOPD==TRUE]
 
 print("Loading PCA")
-pca <- fread("data/intermediate_files/pca/15-ukbb_copd_pcair_eigenvectors.txt", header=F, stringsAsFactors = F)
-pca <- pca[,c("V1","V2","V3","V4"),with=F]  # adjust with 3 PCs
+pca <- fread("data/intermediate_files/pca/15-ukbb_copd_flashpca2_eigenvectors.txt", header=F, stringsAsFactors = F)
+pca <- pca[,c("V1","V2","V3","V4"),with=F]
 pca[,V1 := gsub("(.*):(.*)","\\2",V1)]
 colnames(pca) <- c("eid","PC1","PC2","PC3")
 
@@ -212,6 +218,7 @@ print("Merging phenotypes with PCA")
 pheno <- merge(pheno,pca,by="eid")
 pheno[,ratio.irnt := get_irnt(ratio)]
 pheno[,fev1pp.irnt := get_irnt(fev1pp)]
+pheno[,pef.irnt := get_irnt(pef)]
 ranges = data.frame(
   chromosome = "01",
   start = 205780000,
@@ -233,12 +240,12 @@ samplefile$index <- 1:nrow(samplefile)
 samplefile$samplename <- paste0("(anonymous_sample_", samplefile$index, ")")
 samplefile <- samplefile[,-c("missing","sex","ID_2")]
 setnames(samplefile, "ID_1","eid")
-#i <- which(samplefile$eid %in% pheno$eid) # 14,196
-copd_samples <- paste0("(anonymous_sample_", i, ")")
+#i <- which(samplefile$eid %in% pheno$eid) # 22,176
+#copd_samples <- paste0("(anonymous_sample_", i, ")")
 
 
 print(paste0("Starting association analysis for ",nrow(pheno)," samples and ",nrow(data$variants)," variants"))
-phenocols <- c("ratio.irnt","fev1pp.irnt")
+phenocols <- c("ratio.irnt","fev1pp.irnt", "pef.irnt")
 results <- NULL
 for(j in 1:length(phenocols)) {
   phenoj <- pheno[,c("eid", phenocols[j]),with=F]
@@ -290,11 +297,11 @@ for(j in 1:length(phenocols)) {
     phenoj_assoc <- rbind(phenoj_assoc, assoc)
     results <- rbind(results, assoc)
   }
-  outname <- paste0(outdir,phenoname,".assoc_copd_only.csv")
+  outname <- paste0(outdir,phenoname,".assoc_copd_only_v3.csv")
   print(paste0("Saving results to: ", outname))
   fwrite(phenoj_assoc, outname, quote=F, row.names=F, col.names=T)
 }
-outname <- paste0(outdir,"spirometry_assoc_ukbb_copd_only_26a9.csv")
+outname <- paste0(outdir,"spirometry_assoc_ukbb_copd_only_26a9_v3.csv")
 print(paste0("Saving all results of COPD association to: ", outname))
 fwrite(results, outname, quote=F, row.names=F, col.names=T)
 

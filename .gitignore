@@ -8,6 +8,11 @@
 *ukbb24727*
 variants.tsv.bgz
 jobout
-.apikey
-data/
+.apikey*
+data/intermediate_files/
+data/clean/ukbb_spiro_and_geno_qc_v2.csv
 Thumbs.db
+old/
+temp/
+*temp*
+*tmp*
