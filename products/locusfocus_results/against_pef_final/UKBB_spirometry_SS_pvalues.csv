@@ -1,0 +1,5 @@
+"Dataset description","Simple Sum -log10P","Number of SNPs Used in SS Calculation"
+"COPD case-control (N=263,461)","-2","85"
+"FEV1/FVC Shrine et al. (N~396,686)","8.65e+00","85"
+"FEV1pp in UKBB (N=263,461)","-2","85"
+"Meconium Ileus GWAS 2019 (N=6,770)","8.1e+00","80"

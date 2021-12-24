@@ -1,8 +1,0 @@
-"Dataset description","Simple Sum -log10P","Number of SNPs Used in SS Calculation"
-"COPD case-control (N=264,273)","-2","87"
-"FEV1/FVC in COPD (N=22,176)","-2","87"
-"FEV1/FVC in UKBB (N=264,273)","6.48e+00","87"
-"FEV1pp in COPD (N=22,176)","-2","87"
-"FEV1pp in UKBB (N=264,273)","-2","87"
-"PEF in COPD (N=22,176)","-2","87"
-"PEF in UKBB (N=264,273)","7.89e+00","87"
