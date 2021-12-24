@@ -203,109 +203,109 @@ outname <- paste0(outdir,"spirometry_assoc_ukbb_26a9_v3.csv")
 print(paste0("Saving all spirometry association results to: ", outname))
 fwrite(results, outname, quote=F, row.names=F, col.names=T)
 
-
-
-# Association with GOLD2-4 COPD individuals
-print("")
-print("Starting association for GOLD2-4 COPD subset")
-pheno <- pheno[,-c("ratio.irnt","fev1pp.irnt","pef.irnt","PC1","PC2","PC3"),with=F]
-pheno <- pheno[hasCOPD==TRUE]
-
-print("Loading PCA")
-pca <- fread("data/intermediate_files/pca/15-ukbb_copd_flashpca2_eigenvectors.txt", header=F, stringsAsFactors = F)
-pca <- pca[,c("V1","V2","V3","V4"),with=F]
-pca[,V1 := gsub("(.*):(.*)","\\2",V1)]
-colnames(pca) <- c("eid","PC1","PC2","PC3")
-
-print("Merging phenotypes with PCA")
-pheno <- merge(pheno,pca,by="eid")
-pheno[,ratio.irnt := get_irnt(ratio)]
-pheno[,fev1pp.irnt := get_irnt(fev1pp)]
-pheno[,pef.irnt := get_irnt(pef)]
-ranges = data.frame(
-  chromosome = "01",
-  start = 205780000,
-  end = 205940000
-)
-print(paste0("Loading imputation data for ",nrow(pheno)," samples"))
-data = bgen.load( "/hpf/largeprojects/struglis/datasets/uk_biobank_40946/imputation/ukb_imp_chr1_v3.bgen", ranges, samples = pheno$samplename)
-
-
-covar <- pheno[,c("eid","sex","age", "everSmoked")]
-covar <- cbind(covar, age2=covar$age^2)
-
-
-# Dosage sample file:
-print("Loading imputation sample file")
-samplefile <- fread("/hpf/largeprojects/struglis/datasets/uk_biobank_40946/imputation/sample_files/ukb40946_imp_chr1_v3_s487324.sample")
-samplefile <- samplefile[-1,] # 487,409
-samplefile$index <- 1:nrow(samplefile)
-samplefile$samplename <- paste0("(anonymous_sample_", samplefile$index, ")")
-samplefile <- samplefile[,-c("missing","sex","ID_2")]
-setnames(samplefile, "ID_1","eid")
-#i <- which(samplefile$eid %in% pheno$eid) # 22,176
-#copd_samples <- paste0("(anonymous_sample_", i, ")")
-
-
-print(paste0("Starting association analysis for ",nrow(pheno)," samples and ",nrow(data$variants)," variants"))
-phenocols <- c("ratio.irnt","fev1pp.irnt", "pef.irnt")
-results <- NULL
-for(j in 1:length(phenocols)) {
-  phenoj <- pheno[,c("eid", phenocols[j]),with=F]
-  phenoname <- phenocols[j]
-  print(paste0("Running association analysis for ", phenoname))
-  phenoj_assoc <- NULL
-  # for each snp
-  for(i in 1:nrow(data$variants)) {
-    if(i==1 | (i %% 100)==0) {
-      print(paste0("SNP ",i," of ",nrow(data$variants),". "
-                   ,format(round((i/nrow(data$variants))*100,2),nsmall=2), "% done"))
-    }
-    snpi <- data$data[i,,]
-    dosage <- snpi[,"g=1"] + 2*snpi[,"g=2"]
-    af <- sum(dosage,na.rm=T) / (2*length(dosage))
-    maf <- af
-    if(maf>0.5) maf <- 1-maf
-    if(maf<(10/length(dosage))) next
-    snpi <- cbind(snpi,dosage)
-    sample_indices <- as.integer(gsub("\\(anonymous_sample_(\\d+)\\)","\\1",names(dosage)))
-    sample_ids <- as.character(samplefile$eid[sample_indices])
-    snpi <- data.table(cbind(snpi, sample_ids))
-    covar[,eid := as.character(eid)]
-    x <- merge(phenoj, covar, by="eid")
-    x <- merge(x, pca, by="eid")
-    x <- merge(x, snpi[,c("sample_ids","dosage")], by.x="eid", by.y="sample_ids")
-    x <- x[,-c("eid"),with=F]
-    x <- na.omit(x)
-    x[,dosage := as.numeric(dosage)]
-    x[,sex := as.factor(sex)]
-    realmaf <- sum(x$dosage,na.rm=T)/(2*nrow(x))
-    if(realmaf>0.5) maf <- 1-maf
-    if(realmaf<(10/nrow(x))) next
-    model <- glm(formula(paste0(phenoname,"~ dosage + PC1 + PC2 + PC3 + sex + age + age2 + sex:age + sex:age2 + everSmoked")), data=x)
-    snp <- data$variants[i,]
-    coefmat <- coef(summary(model))
-    assoc <- data.frame(chrom=as.integer(snp$chromosome)
-                        ,pos=snp$position
-                        ,rsid=as.character(snp$rsid)
-                        ,REF=snp$allele0
-                        ,ALT=snp$allele1
-                        ,beta=coefmat['dosage','Estimate']
-                        ,std.err=coefmat['dosage','Std. Error']
-                        ,P=coefmat['dosage','Pr(>|t|)']
-                        ,N=nrow(x)
-                        ,allele_freq=af
-                        ,phenotype=phenoname
-                        )
-    phenoj_assoc <- rbind(phenoj_assoc, assoc)
-    results <- rbind(results, assoc)
-  }
-  outname <- paste0(outdir,phenoname,".assoc_copd_only_v3.csv")
-  print(paste0("Saving results to: ", outname))
-  fwrite(phenoj_assoc, outname, quote=F, row.names=F, col.names=T)
-}
-outname <- paste0(outdir,"spirometry_assoc_ukbb_copd_only_26a9_v3.csv")
-print(paste0("Saving all results of COPD association to: ", outname))
-fwrite(results, outname, quote=F, row.names=F, col.names=T)
-
-
+# 
+# 
+# # Association with GOLD2-4 COPD individuals
+# print("")
+# print("Starting association for GOLD2-4 COPD subset")
+# pheno <- pheno[,-c("ratio.irnt","fev1pp.irnt","pef.irnt","PC1","PC2","PC3"),with=F]
+# pheno <- pheno[hasCOPD==TRUE]
+# 
+# print("Loading PCA")
+# pca <- fread("data/intermediate_files/pca/15-ukbb_copd_flashpca2_eigenvectors.txt", header=F, stringsAsFactors = F)
+# pca <- pca[,c("V1","V2","V3","V4"),with=F]
+# pca[,V1 := gsub("(.*):(.*)","\\2",V1)]
+# colnames(pca) <- c("eid","PC1","PC2","PC3")
+# 
+# print("Merging phenotypes with PCA")
+# pheno <- merge(pheno,pca,by="eid")
+# pheno[,ratio.irnt := get_irnt(ratio)]
+# pheno[,fev1pp.irnt := get_irnt(fev1pp)]
+# pheno[,pef.irnt := get_irnt(pef)]
+# ranges = data.frame(
+#   chromosome = "01",
+#   start = 205780000,
+#   end = 205940000
+# )
+# print(paste0("Loading imputation data for ",nrow(pheno)," samples"))
+# data = bgen.load( "/hpf/largeprojects/struglis/datasets/uk_biobank_40946/imputation/ukb_imp_chr1_v3.bgen", ranges, samples = pheno$samplename)
+# 
+# 
+# covar <- pheno[,c("eid","sex","age", "everSmoked")]
+# covar <- cbind(covar, age2=covar$age^2)
+# 
+# 
+# # Dosage sample file:
+# print("Loading imputation sample file")
+# samplefile <- fread("/hpf/largeprojects/struglis/datasets/uk_biobank_40946/imputation/sample_files/ukb40946_imp_chr1_v3_s487324.sample")
+# samplefile <- samplefile[-1,] # 487,409
+# samplefile$index <- 1:nrow(samplefile)
+# samplefile$samplename <- paste0("(anonymous_sample_", samplefile$index, ")")
+# samplefile <- samplefile[,-c("missing","sex","ID_2")]
+# setnames(samplefile, "ID_1","eid")
+# #i <- which(samplefile$eid %in% pheno$eid) # 22,176
+# #copd_samples <- paste0("(anonymous_sample_", i, ")")
+# 
+# 
+# print(paste0("Starting association analysis for ",nrow(pheno)," samples and ",nrow(data$variants)," variants"))
+# phenocols <- c("ratio.irnt","fev1pp.irnt", "pef.irnt")
+# results <- NULL
+# for(j in 1:length(phenocols)) {
+#   phenoj <- pheno[,c("eid", phenocols[j]),with=F]
+#   phenoname <- phenocols[j]
+#   print(paste0("Running association analysis for ", phenoname))
+#   phenoj_assoc <- NULL
+#   # for each snp
+#   for(i in 1:nrow(data$variants)) {
+#     if(i==1 | (i %% 100)==0) {
+#       print(paste0("SNP ",i," of ",nrow(data$variants),". "
+#                    ,format(round((i/nrow(data$variants))*100,2),nsmall=2), "% done"))
+#     }
+#     snpi <- data$data[i,,]
+#     dosage <- snpi[,"g=1"] + 2*snpi[,"g=2"]
+#     af <- sum(dosage,na.rm=T) / (2*length(dosage))
+#     maf <- af
+#     if(maf>0.5) maf <- 1-maf
+#     if(maf<(10/length(dosage))) next
+#     snpi <- cbind(snpi,dosage)
+#     sample_indices <- as.integer(gsub("\\(anonymous_sample_(\\d+)\\)","\\1",names(dosage)))
+#     sample_ids <- as.character(samplefile$eid[sample_indices])
+#     snpi <- data.table(cbind(snpi, sample_ids))
+#     covar[,eid := as.character(eid)]
+#     x <- merge(phenoj, covar, by="eid")
+#     x <- merge(x, pca, by="eid")
+#     x <- merge(x, snpi[,c("sample_ids","dosage")], by.x="eid", by.y="sample_ids")
+#     x <- x[,-c("eid"),with=F]
+#     x <- na.omit(x)
+#     x[,dosage := as.numeric(dosage)]
+#     x[,sex := as.factor(sex)]
+#     realmaf <- sum(x$dosage,na.rm=T)/(2*nrow(x))
+#     if(realmaf>0.5) maf <- 1-maf
+#     if(realmaf<(10/nrow(x))) next
+#     model <- glm(formula(paste0(phenoname,"~ dosage + PC1 + PC2 + PC3 + sex + age + age2 + sex:age + sex:age2 + everSmoked")), data=x)
+#     snp <- data$variants[i,]
+#     coefmat <- coef(summary(model))
+#     assoc <- data.frame(chrom=as.integer(snp$chromosome)
+#                         ,pos=snp$position
+#                         ,rsid=as.character(snp$rsid)
+#                         ,REF=snp$allele0
+#                         ,ALT=snp$allele1
+#                         ,beta=coefmat['dosage','Estimate']
+#                         ,std.err=coefmat['dosage','Std. Error']
+#                         ,P=coefmat['dosage','Pr(>|t|)']
+#                         ,N=nrow(x)
+#                         ,allele_freq=af
+#                         ,phenotype=phenoname
+#                         )
+#     phenoj_assoc <- rbind(phenoj_assoc, assoc)
+#     results <- rbind(results, assoc)
+#   }
+#   outname <- paste0(outdir,phenoname,".assoc_copd_only_v3.csv")
+#   print(paste0("Saving results to: ", outname))
+#   fwrite(phenoj_assoc, outname, quote=F, row.names=F, col.names=T)
+# }
+# outname <- paste0(outdir,"spirometry_assoc_ukbb_copd_only_26a9_v3.csv")
+# print(paste0("Saving all results of COPD association to: ", outname))
+# fwrite(results, outname, quote=F, row.names=F, col.names=T)
+# 
+# 
