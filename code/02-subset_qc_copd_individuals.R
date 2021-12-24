@@ -207,5 +207,11 @@ gli_query_data_samples <- paste0("(anonymous_sample_", i, ")")
 
 x <- merge(gli_query_data, samplefile, by="eid")
 gli_query_data <- x # 264,273 (with 22,176 GOLD2-4-defined COPD)
+# add smoking:
+x <- merge(gli_query_data, dat[ ,grep("f.eid|20160.0", colnames(dat)),with=F ]
+           , by.x="eid", by.y="f.eid")
+setnames(x, "f.20160.0.0", "everSmoked")
+gli_query_data <- x # 812 missing everSmoked status - remove
+gli_query_data <- gli_query_data[-which(is.na(everSmoked))] # 263,461
 fwrite(gli_query_data, file.path("data","clean","ukbb_spiro_and_geno_qc_v2.csv")
-       , quote=F, row.names=F, col.names=T, sep=",")
+       , quote=F, row.names=F, col.names=T, sep=",") # 263,461
