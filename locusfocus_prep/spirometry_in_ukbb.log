@@ -1,0 +1,18 @@
+Start: Thu Dec 23 18:02:17 2021
+filelist_filename: filelist.txt
+Region: 1:205780000-205940000
+outfilename: spirometry_in_ukbb.html
+Log file: spirometry_in_ukbb.log
+Reading list of files file
+Verifying settings in filelist_filename
+Start: Thu Dec 23 18:03:55 2021
+filelist_filename: filelist.txt
+Region: 1:205780000-205940000
+outfilename: spirometry_in_ukbb.html
+Log file: spirometry_in_ukbb.log
+Reading list of files file
+Verifying settings in filelist_filename
+Merging files
+Writing merged output
+Done
+End: Thu Dec 23 18:03:57 2021

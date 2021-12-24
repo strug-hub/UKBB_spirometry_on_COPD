@@ -1,0 +1,4 @@
+MI_GWAS_2019_1_205500-206000kbp.tsv	Meconium Ileus GWAS 2019 (N=6,770)	#CHROM	BP	SNP	P
+../data/clean/assoc/tsv/fev1pp.irnt.assoc_v3.tsv	FEV1pp in UKBB (N=263,461)	chrom	pos	rsid	P
+../../spirometa/Shrine_30804560_FEV1_to_FVC_RATIO_meta-analysis_chr1_205780_205940Kbp.txt	FEV1/FVC Shrine et al. (N~396,686)	Chromosome	Position_b37	#SNP	P
+../data/clean/assoc/tsv/hasCOPD.assoc_v3.tsv	COPD case-control (N=263,461)	chrom	pos	rsid	P
